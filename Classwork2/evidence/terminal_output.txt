@@ -1,0 +1,68 @@
+===== 01_json_basics.py =====
+<class 'dict'>
+Name: Arbaz
+Program: MS AI
+First course: Agentic AI
+
+ <class 'list'> with 3 students
+  101 - Arbaz - GPA 3.6
+  102 - Ali - GPA 3.2
+  103 - Sara - GPA 3.9
+
+As JSON: {"name": "Usman", "program": "MS AI"}
+
+===== 02_api_client.py =====
+GET /posts/1 -> 200
+  Title: sunt aut facere repellat provident occaecati excepturi optio reprehenderit
+  User ID: 1
+  Content-Type header: application/json; charset=utf-8
+
+GET /posts/1 -> 200: sunt aut facere repellat provident occae
+GET /posts/2 -> 200: qui est esse
+GET /posts/3 -> 200: ea molestias quasi exercitationem repell
+
+GET /posts?userId=1 -> 200, got 10 posts
+  - 1 sunt aut facere repellat provident occae
+  - 2 qui est esse
+  - 3 ea molestias quasi exercitationem repell
+
+POST /posts -> 201 {'title': 'My first post', 'body': 'Hello from Python', 'userId': 1, 'id': 101}
+PUT /posts/1 -> 200 {'id': 1, 'title': 'Updated title', 'body': 'Updated body', 'userId': 1}
+DELETE /posts/1 -> 200
+
+===== 03_auth.py =====
+Without token -> 401
+With token -> 200
+Authenticated: True
+Token used: test****
+
+===== 04_errors.py =====
+1. Normal request:
+  OK: sunt aut facere repellat provident occaecati excepturi optio reprehenderit
+
+2. Missing resource:
+  Server responded: True | status: 404 | ok: False
+  404 - server responded but resource not found
+
+3. Timeout (server waits 5s, we only wait 2s):
+  Timeout after 2s
+
+4. Rate limit (429):
+  429 - attempt 1, waiting 1s
+  429 - attempt 2, waiting 2s
+  Gave up after 2 attempts
+
+5. Server error (500):
+  500 - attempt 1, waiting 1s
+  500 - attempt 2, waiting 2s
+  Gave up after 2 attempts
+
+6. Network error (domain doesn't exist):
+  Network error, could not connect
+
+Program finished without crashing
+
+===== 05_agent_tool.py =====
+get_post(5) -> {'id': 5, 'title': 'nesciunt quas odio', 'body': 'repudiandae veniam quaerat sunt sed\nalias aut fugiat sit autem sed est\nvoluptatem omnis possimus esse voluptatibus quis\nest aut tenetur dolor neque'}
+get_post(500) -> {'error': 'post 500 not found'}
+
