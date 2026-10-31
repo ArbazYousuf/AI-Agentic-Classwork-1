@@ -1,0 +1,134 @@
+
+------------------------------------------------------------
+Part 1: Text Classification
+------------------------------------------------------------
+Total: 30 Train: 21 Test: 9
+Vocabulary size: 212
+
+Accuracy: 0.78
+              precision    recall  f1-score   support
+
+     billing       0.75      1.00      0.86         3
+     general       0.75      1.00      0.86         3
+   technical       1.00      0.33      0.50         3
+
+    accuracy                           0.78         9
+   macro avg       0.83      0.78      0.74         9
+weighted avg       0.83      0.78      0.74         9
+
+Predictions on new text:
+  billing: I was charged for a plan I never ordered
+  technical: The app shows an error when I try to log in
+  general: What time does your office open?
+  billing: Please send me a receipt for my refund
+
+Training vs Inference:
+Training is when the model learns from labelled data (fit). It builds the
+vocabulary and learns the weights. Inference is when we use the trained model
+to predict labels for new text it has never seen (predict). No learning happens there.
+
+------------------------------------------------------------
+Part 2: Text Preprocessing
+------------------------------------------------------------
+Cleaned sentences:
+'   Hello,   WORLD!!  How are   you?  ' -> 'hello world how are you'
+"Machine\tLearning\nis   AMAZING... isn't it?" -> 'machine learning is amazing isnt it'
+'Email me at: Support@Example.COM, ASAP!!!' -> 'email me at supportexamplecom asap'
+'Price: $49.99 (20% OFF) - limited time!' -> 'price 4999 20 off limited time'
+'Already clean text' -> 'already clean text'
+
+Only whitespace removed:
+'   Hello,   WORLD!!  How are   you?  ' -> 'Hello, WORLD!! How are you?'
+"Machine\tLearning\nis   AMAZING... isn't it?" -> "Machine Learning is AMAZING... isn't it?"
+
+Why preprocessing is useful:
+- 'Hello', 'hello' and 'hello!' become the same word, so the model doesn't count them separately
+- vocabulary gets smaller which helps when the dataset is small
+- extra spaces and symbols are mostly noise
+- but don't over clean, e.g. 'US' and 'us' mean different things
+
+------------------------------------------------------------
+Part 3: Tokenization
+------------------------------------------------------------
+Sentence: Tokenization helps transformers understand unbelievably long words.
+Tokens: ['token', '##ization', 'helps', 'transformers', 'understand', 'un', '##bel', '##ie', '##va', '##bly', 'long', 'words', '.']
+Token IDs: [19204, 3989, 7126, 19081, 3305, 4895, 8671, 2666, 3567, 6321, 2146, 2616, 1012]
+
+With special tokens: ['[CLS]', 'token', '##ization', 'helps', 'transformers', 'understand', 'un', '##bel', '##ie', '##va', '##bly', 'long', 'words', '.', '[SEP]']
+IDs: [101, 19204, 3989, 7126, 19081, 3305, 4895, 8671, 2666, 3567, 6321, 2146, 2616, 1012, 102]
+
+Decoded: [CLS] tokenization helps transformers understand unbelievably long words. [SEP]
+Decoded without special tokens: tokenization helps transformers understand unbelievably long words.
+
+BERT special tokens:
+  unk_token [UNK] 100
+  sep_token [SEP] 102
+  pad_token [PAD] 0
+  cls_token [CLS] 101
+  mask_token [MASK] 103
+
+Token counts (BERT / GPT-2):
+  13 / 10  Tokenization helps transformers understand unbelievably long words.
+  5 / 5  I love NLP!
+  22 / 20  Pneumonoultramicroscopicsilicovolcanoconiosis is a lung disease.
+  11 / 11  Karachi's weather is hot and humid in summer.
+
+BERT splits it into: ['p', '##ne', '##um', '##ono', '##ult', '##ram', '##ic', '##ros', '##copic', '##sil', '##ico', '##vo', '##lc', '##ano', '##con', '##ios', '##is']
+GPT-2 splits it into: ['P', 'neum', 'on', 'oult', 'ram', 'icro', 'sc', 'op', 'ics', 'ilic', 'ov', 'ol', 'can', 'ocon', 'iosis']
+
+Special tokens: [CLS] is added at the start (used for classification), [SEP] at the end
+or between two sentences, [PAD] for padding, [UNK] for unknown and [MASK] for masked words.
+Subword tokenization breaks rare words into smaller known pieces so the vocab stays
+small but can still handle any word. BERT uses ## for continuation pieces, GPT-2 uses
+BPE and marks spaces with G, so both give different counts.
+
+------------------------------------------------------------
+Part 4: Embeddings and Similarity
+------------------------------------------------------------
+Embeddings shape: torch.Size([5, 384])
+First 5 numbers of sentence 1: [0.15147335827350616, -0.08359263092279434, -0.033027034252882004, 0.02331273816525936, 0.023539984598755836]
+
+Cosine similarity:
+  0.727  The cat is sleeping on the sofa. | A kitten is napping on the couch.
+  0.585  I need to reset my account password. | How do I change my login credentials?
+  -0.024  The cat is sleeping on the sofa. | The stock market fell sharply today.
+  0.011  I need to reset my account password. | The stock market fell sharply today.
+  0.145  The cat is sleeping on the sofa. | I need to reset my account password.
+
+Cat vs kitten sentence:
+  word count similarity: 0.0
+  embedding similarity: 0.727
+
+The similar pairs (cat/kitten, password/login) got high scores and the unrelated
+ones are close to 0. Word counts only match exact words so cat and kitten get 0,
+but embeddings capture the meaning so they still score high.
+
+------------------------------------------------------------
+Part 5: Semantic Search
+------------------------------------------------------------
+Stored embeddings for 10 documents
+
+Query: I forgot my login credentials
+  1. 0.661  To reset your password, click 'Forgot password' on the login page and follow the email link.
+  2. 0.317  Two-factor authentication adds an extra layer of security to your account.
+  3. 0.227  You can upgrade or downgrade your subscription plan from the billing settings page.
+
+Query: When will I get my money back?
+  1. 0.552  Refunds are processed within 5-7 business days to the original payment method.
+  2. 0.219  Our support team is available Monday to Friday, 9 AM to 6 PM.
+  3. 0.173  You can upgrade or downgrade your subscription plan from the billing settings page.
+
+Query: what time can I talk to customer service
+  1. 0.466  Our support team is available Monday to Friday, 9 AM to 6 PM.
+  2. 0.241  You can upgrade or downgrade your subscription plan from the billing settings page.
+  3. 0.238  We ship internationally, delivery usually takes 7-14 days depending on the country.
+
+Query: Is there an app for my iPhone?
+  1. 0.569  The mobile app is available for both Android and iOS devices.
+  2. 0.106  Two-factor authentication adds an extra layer of security to your account.
+  3. 0.090  To reset your password, click 'Forgot password' on the login page and follow the email link.
+
+Query: tips for staying fit
+  1. 0.318  Healthy eating and regular exercise improve both physical and mental well-being.
+  2. 0.039  Export your data as CSV or PDF from the reports section of the dashboard.
+  3. 0.031  You can upgrade or downgrade your subscription plan from the billing settings page.

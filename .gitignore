@@ -17,3 +17,12 @@ venv/
 
 # Editor settings
 .vscode/
+
+# Pytest cache
+.pytest_cache/
+
+# Only Classwork1 and Classwork3 are tracked
+Classwork4/
+Classwork5/
+Classwork6/
+
